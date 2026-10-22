@@ -1,0 +1,11 @@
+.venv/
+.sandbox/
+data/
+config.json
+mcp.config.generated.json
+__pycache__/
+*.pyc
+out/
+.mcp.json
+.claude/
+screenshots/
