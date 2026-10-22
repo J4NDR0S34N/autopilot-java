@@ -14,6 +14,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
+IS_WIN = os.name == "nt"
+EXE = ".exe" if IS_WIN else ""
 
 
 class ConfigError(Exception):
@@ -40,11 +42,11 @@ class Config:
 
     @property
     def javac(self) -> Path | None:
-        return self.java_home / "bin" / "javac.exe" if self.java_home else None
+        return self.java_home / "bin" / f"javac{EXE}" if self.java_home else None
 
     @property
     def java(self) -> Path | None:
-        return self.java_home / "bin" / "java.exe" if self.java_home else None
+        return self.java_home / "bin" / f"java{EXE}" if self.java_home else None
 
     def java_feature(self) -> int | None:
         """Versión principal del JDK (p. ej. 26), obtenida de `javac -version`."""
@@ -70,11 +72,18 @@ def _find_java_home(configured: str | None) -> Path | None:
         cands.append(configured)
     if os.environ.get("JAVA_HOME"):
         cands.append(os.environ["JAVA_HOME"])
-    for pattern in (r"C:\Program Files\Java\jdk-*", r"C:\Program Files\Eclipse Adoptium\jdk-*",
-                    r"C:\Program Files\Microsoft\jdk-*"):
+    patterns = ((r"C:\Program Files\Java\jdk-*", r"C:\Program Files\Eclipse Adoptium\jdk-*",
+                 r"C:\Program Files\Microsoft\jdk-*") if IS_WIN else
+                ("/usr/lib/jvm/*", "/usr/local/lib/jvm/*", "/opt/homebrew/opt/openjdk*/libexec/openjdk.jdk/Contents/Home",
+                 "/Library/Java/JavaVirtualMachines/*/Contents/Home"))
+    # Si hay `javac` en el PATH se deduce su JAVA_HOME (cubre sdkman, asdf, instalaciones a mano...).
+    javac = shutil.which("javac")
+    if javac:
+        cands.append(str(Path(os.path.realpath(javac)).parent.parent))
+    for pattern in patterns:
         cands += sorted(glob.glob(pattern), key=_version_key, reverse=True)
     for c in cands:
-        if (Path(c) / "bin" / "javac.exe").exists():
+        if (Path(c) / "bin" / f"javac{EXE}").exists():
             return Path(c)
     return None
 
@@ -115,7 +124,7 @@ def load_config() -> Config:
     data_dir = Path(os.path.realpath(data_str))
     # La carpeta de datos no puede estar dentro de la raíz (evita auto-modificarse y ensuciar proyectos).
     a, r = os.path.normcase(str(data_dir)), os.path.normcase(str(root))
-    if a == r or a.startswith(r.rstrip("\\") + "\\"):
+    if a == r or a.startswith(r.rstrip(os.sep) + os.sep):
         raise ConfigError("data_dir no puede estar dentro de la carpeta raíz de proyectos.")
     data_dir.mkdir(parents=True, exist_ok=True)
 

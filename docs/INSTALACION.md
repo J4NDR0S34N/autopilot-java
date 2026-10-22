@@ -1,5 +1,8 @@
 # Instalación e integración (Windows)
 
+> **Camino fácil:** `python autopilot.py setup` (o el instalador de una línea del README) hace todo lo de abajo
+> automáticamente. Esta guía es para instalar a mano o resolver problemas.
+
 Requisitos (probado en): Windows 11, Python 3.12, JDK 26.0.2, Apache NetBeans (lanzador 101.4) con
 Maven 3.9.16 y Ant 1.10.17 incluidos. Claude Desktop 3.1623.1 / Claude Code 2.1.304.
 

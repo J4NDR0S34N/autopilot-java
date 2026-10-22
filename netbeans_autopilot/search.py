@@ -75,7 +75,7 @@ def search(guard: Guard, project: str, query: str, mode: str = "text", glob: str
 def _git(args: list[str], cwd: Path) -> str | None:
     try:
         r = subprocess.run(["git", *args], cwd=str(cwd), capture_output=True, text=True, timeout=20,
-                           creationflags=subprocess.CREATE_NO_WINDOW)
+                           creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
         return r.stdout if r.returncode == 0 else None
     except (OSError, subprocess.SubprocessError):
         return None

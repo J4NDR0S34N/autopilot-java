@@ -9,7 +9,8 @@ from pathlib import Path
 SAFE_ENV_KEYS = ["PATH", "SystemRoot", "windir", "ComSpec", "PATHEXT", "USERPROFILE", "HOMEDRIVE", "HOMEPATH",
                  "APPDATA", "LOCALAPPDATA", "TEMP", "TMP", "ProgramFiles", "ProgramFiles(x86)", "ProgramData",
                  "ProgramW6432", "NUMBER_OF_PROCESSORS", "PROCESSOR_ARCHITECTURE", "USERNAME", "COMPUTERNAME",
-                 "OS", "SystemDrive"]
+                 "OS", "SystemDrive",
+                 "HOME", "USER", "LOGNAME", "LANG", "LC_ALL", "TMPDIR", "SHELL"]   # POSIX
 MAX_OUTPUT = 60_000
 
 
@@ -38,7 +39,20 @@ def safe_env(java_home: Path | None, extra: dict | None = None) -> dict:
 
 
 def _kill_tree(pid: int) -> None:
-    subprocess.run(["taskkill", "/PID", str(pid), "/T", "/F"], capture_output=True, timeout=20)
+    if os.name == "nt":
+        subprocess.run(["taskkill", "/PID", str(pid), "/T", "/F"], capture_output=True, timeout=20)
+    else:
+        import signal
+        try:
+            os.killpg(pid, signal.SIGKILL)   # el proceso se lanza como líder de su propio grupo
+        except OSError:
+            pass
+
+
+def _spawn_flags() -> dict:
+    if os.name == "nt":
+        return {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_NO_WINDOW}
+    return {"start_new_session": True}
 
 
 def run_command(argv: list[str], cwd: Path, timeout: int, java_home: Path | None,
@@ -49,8 +63,7 @@ def run_command(argv: list[str], cwd: Path, timeout: int, java_home: Path | None
         proc = subprocess.Popen(
             argv, cwd=str(cwd), env=safe_env(java_home, extra_env),
             stdin=subprocess.PIPE if stdin_text is not None else subprocess.DEVNULL,
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_NO_WINDOW)
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, **_spawn_flags())
     except OSError as e:
         return {"argv": argv, "exit_code": None, "stdout": "", "stderr": f"No se pudo iniciar el proceso: {e}",
                 "timed_out": False, "duration_s": 0.0, "truncated": False}

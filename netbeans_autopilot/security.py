@@ -39,7 +39,7 @@ class Guard:
     # ---------- resolución de rutas ----------
     def _inside(self, p: Path) -> bool:
         a, r = os.path.normcase(str(p)), os.path.normcase(str(self.root))
-        return a == r or a.startswith(r.rstrip("\\") + "\\")
+        return a == r or a.startswith(r.rstrip(os.sep) + os.sep)
 
     def resolve(self, path: str) -> Path:
         """Devuelve la ruta real (sin enlaces/uniones) garantizando que queda dentro de la raíz."""
@@ -91,7 +91,7 @@ class Guard:
         try:
             relp = real.relative_to(pdir)
         except ValueError:
-            if os.path.normcase(str(real)).startswith(os.path.normcase(str(pdir)) + "\\"):
+            if os.path.normcase(str(real)).startswith(os.path.normcase(str(pdir)) + os.sep):
                 relp = Path(os.path.relpath(real, pdir))
             else:
                 raise SecurityError(f"La ruta sale del proyecto '{project}': {rel!r}") from None

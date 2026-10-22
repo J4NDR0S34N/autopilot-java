@@ -4,21 +4,46 @@ Servidor **MCP local** (stdio) que permite a Claude Code inspeccionar, editar, c
 proyectos Java de Apache NetBeans dentro de **una carpeta raíz autorizada**. No es un chat ni un generador de
 fragmentos: Claude trabaja sobre tus archivos reales y recibe la salida real de Maven/Ant/javac.
 
-## Instalación rápida (3 pasos)
+## Instalación (una línea)
 
-Requisitos: Windows, Python 3.10+, Apache NetBeans y [Claude Code](https://claude.com/claude-code).
+Funciona con **cualquier cliente MCP** (OpenCode con modelos gratis, Claude Code, Gemini CLI...) y en cualquier IDE:
+el servidor edita los archivos del proyecto y tu IDE (NetBeans, IntelliJ, Eclipse, VS Code...) los recarga.
+
+**Windows** - abre PowerShell (normal, no administrador) y pega:
 
 ```powershell
-git clone https://github.com/J4NDR0S34N/autopilot-java.git
-cd autopilot-java
-powershell -ExecutionPolicy Bypass -File .\install.ps1 -ProjectsRoot "C:\Users\TU_USUARIO\Documents\NetBeansProjects"
+irm https://raw.githubusercontent.com/J4NDR0S34N/autopilot-java/main/bootstrap.ps1 | iex
 ```
 
-El script crea el entorno, ejecuta las pruebas y registra el servidor en Claude Code. Abre una sesión **nueva** de
-Claude Code y pide: *«Llama a get_environment y list_projects»*. Detalles y solución de problemas en
-[docs/INSTALACION.md](docs/INSTALACION.md).
+**Linux / macOS**:
 
-> Es un servidor para **Claude Code**, no un plugin de NetBeans: Claude edita los archivos del proyecto y NetBeans los recarga.
+```sh
+curl -fsSL https://raw.githubusercontent.com/J4NDR0S34N/autopilot-java/main/bootstrap.sh | sh
+```
+
+El instalador comprueba Git y Python (ofrece instalarlos con winget), descarga el servidor en `~/autopilot-java` y
+lanza el **asistente**, que:
+
+1. comprueba requisitos (Python, Git, JDK, Maven) y ofrece instalar lo que falte;
+2. crea el entorno e instala dependencias;
+3. te pide la **carpeta de proyectos** (el servidor solo podrá tocar esa);
+4. te deja elegir **cliente de IA y modelo** (p. ej. OpenCode + `opencode/big-pickle`, gratis) y lo registra;
+5. ejecuta las pruebas.
+
+Después, desde la carpeta `autopilot-java`:
+
+| Comando | Qué hace |
+|---|---|
+| `python autopilot.py start` | abre tu cliente de IA dentro de la carpeta de proyectos |
+| `python autopilot.py doctor [--fix]` | diagnostica qué falta (y lo instala con `--fix`) |
+| `python autopilot.py update` | `git pull` + actualiza dependencias |
+| `python autopilot.py register` | registra el servidor en otro cliente / cambia de modelo |
+| `python autopilot.py status` | muestra la configuración actual |
+
+(En Windows también puedes escribir `autopilot start`; en Linux/macOS `./autopilot start`.)
+Ya dentro del cliente, pide: *«Llama a get_environment y list_projects»*.
+
+Instalación manual y solución de problemas: [docs/INSTALACION.md](docs/INSTALACION.md).
 
 ## Arquitectura (y por qué)
 
