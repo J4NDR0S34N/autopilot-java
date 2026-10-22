@@ -1,15 +1,15 @@
 # Instalación e integración (Windows)
 
-Requisitos detectados en este equipo: Windows 11, Python 3.12, JDK 26.0.2, Apache NetBeans (lanzador 101.4) con
+Requisitos (probado en): Windows 11, Python 3.12, JDK 26.0.2, Apache NetBeans (lanzador 101.4) con
 Maven 3.9.16 y Ant 1.10.17 incluidos. Claude Desktop 3.1623.1 / Claude Code 2.1.304.
 
 ## 1. Preparar
 ```powershell
-cd C:\Users\Alejandro\Desktop\autopilot-java
-powershell -ExecutionPolicy Bypass -File .\install.ps1 -ProjectsRoot "C:\Users\Alejandro\Documents\NetBeansProjects"
+cd C:\ruta\a\autopilot-java
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -ProjectsRoot "C:\Users\TU_USUARIO\Documents\NetBeansProjects"
 ```
-Crea `.venv` local, instala `mcp`, genera `config.json` (si no existe) y `mcp.config.generated.json`, y ejecuta las pruebas
-(con `-SkipTests` se omiten). **No toca** configuración global de Claude, NetBeans ni el PATH.
+Crea `.venv` local, instala `mcp`, **registra el servidor en Claude Code** (ámbito usuario; omítelo con `-NoRegister`), genera `config.json` (si no existe) y `mcp.config.generated.json`, y ejecuta las pruebas
+(con `-SkipTests` se omiten). No toca NetBeans ni el PATH.
 
 `config.json` (opciones): `root`, `data_dir`, `java_home`, `maven_cmd`, `ant_cmd`, `gradle_cmd`, `protected_globs`
 (patrones `Proyecto/ruta/*`), `read_only_projects`, `allow_network`, `allow_form_edit`, `build_timeout`, `max_run_timeout`.
@@ -20,12 +20,12 @@ Claude Code Desktop lee servidores MCP de Claude Code (no de `claude_desktop_con
 Hay dos formas; elige una.
 
 **A. Solo para sesiones abiertas en esta carpeta (ya preparado):** el archivo `.mcp.json` de `autopilot-java` define el
-servidor. Abre una sesión de Claude Code en `C:\Users\Alejandro\Desktop\autopilot-java` y **aprueba** el servidor cuando lo pida.
+servidor. Abre una sesión de Claude Code en `C:\ruta\a\autopilot-java` y **aprueba** el servidor cuando lo pida.
 
 **B. Disponible en todas tus sesiones (cambia tu configuración de usuario; hazlo tú):**
 ```powershell
 Copy-Item "$env:USERPROFILE\.claude.json" "$env:USERPROFILE\.claude.json.bak"
-claude mcp add netbeans-autopilot --scope user -- "C:\Users\Alejandro\Desktop\autopilot-java\.venv\Scripts\python.exe" -m netbeans_autopilot
+claude mcp add netbeans-autopilot --scope user -e PYTHONPATH="C:\ruta\a\autopilot-java" -- "C:\ruta\a\autopilot-java\.venv\Scripts\python.exe" -m netbeans_autopilot
 ```
 (Si `claude` no está en el PATH: `%USERPROFILE%\.local\bin\claude.exe`.) Abre una sesión **nueva** tras hacerlo.
 
@@ -33,7 +33,7 @@ claude mcp add netbeans-autopilot --scope user -- "C:\Users\Alejandro\Desktop\au
 ```powershell
 claude mcp list          # debe mostrar netbeans-autopilot ✔ Connected
 ```
-En una sesión, escribe: *«Llama a get_environment y list_projects»*. Debes ver la raíz y tus 13 proyectos.
+En una sesión, escribe: *«Llama a get_environment y list_projects»*. Debes ver la raíz y tus proyectos.
 Si Claude dice que no tiene esas herramientas: el servidor no está aprobado/conectado (ver «Problemas»).
 
 ## 4. Iniciar y detener

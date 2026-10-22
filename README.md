@@ -4,6 +4,22 @@ Servidor **MCP local** (stdio) que permite a Claude Code inspeccionar, editar, c
 proyectos Java de Apache NetBeans dentro de **una carpeta raíz autorizada**. No es un chat ni un generador de
 fragmentos: Claude trabaja sobre tus archivos reales y recibe la salida real de Maven/Ant/javac.
 
+## Instalación rápida (3 pasos)
+
+Requisitos: Windows, Python 3.10+, Apache NetBeans y [Claude Code](https://claude.com/claude-code).
+
+```powershell
+git clone https://github.com/J4NDR0S34N/autopilot-java.git
+cd autopilot-java
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -ProjectsRoot "C:\Users\TU_USUARIO\Documents\NetBeansProjects"
+```
+
+El script crea el entorno, ejecuta las pruebas y registra el servidor en Claude Code. Abre una sesión **nueva** de
+Claude Code y pide: *«Llama a get_environment y list_projects»*. Detalles y solución de problemas en
+[docs/INSTALACION.md](docs/INSTALACION.md).
+
+> Es un servidor para **Claude Code**, no un plugin de NetBeans: Claude edita los archivos del proyecto y NetBeans los recarga.
+
 ## Arquitectura (y por qué)
 
 ```

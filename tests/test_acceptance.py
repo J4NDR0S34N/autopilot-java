@@ -18,7 +18,7 @@ from netbeans_autopilot.build import Builder  # noqa: E402
 from netbeans_autopilot.config import load_config  # noqa: E402
 from netbeans_autopilot.security import AutopilotError, Guard, SecurityError  # noqa: E402
 
-REAL_ROOT = Path(os.environ.get("NB_REAL_ROOT", r"C:\Users\Alejandro\Documents\NetBeansProjects"))
+REAL_ROOT = Path(os.environ.get("NB_REAL_ROOT", str(Path.home() / "Documents" / "NetBeansProjects")))
 
 
 def manifest(root: Path) -> dict:

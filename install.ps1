@@ -2,11 +2,13 @@
   Prepara el entorno de NetBeans Autopilot. Solo crea archivos DENTRO de esta carpeta (.venv, config.json, .mcp.json).
   No modifica configuración global de Claude, NetBeans ni el PATH.
 
-  Uso:   powershell -ExecutionPolicy Bypass -File .\install.ps1 [-ProjectsRoot "C:\ruta\a\proyectos"] [-SkipTests]
+  Uso:   powershell -ExecutionPolicy Bypass -File .\install.ps1 [-ProjectsRoot "C:\ruta\a\proyectos"] [-SkipTests] [-NoRegister]
+  Por defecto registra el servidor en Claude Code (ambito usuario). Usa -NoRegister para omitirlo.
 #>
 param(
     [string]$ProjectsRoot = "",
-    [switch]$SkipTests
+    [switch]$SkipTests,
+    [switch]$NoRegister
 )
 $ErrorActionPreference = "Stop"
 Set-Location -LiteralPath $PSScriptRoot
@@ -44,5 +46,18 @@ Write-Host "Generado mcp.config.generated.json (ver docs/INSTALACION.md para act
 if (-not $SkipTests) {
     & .\.venv\Scripts\python.exe -m unittest tests.test_acceptance tests.test_mcp_protocol
     if ($LASTEXITCODE) { throw "Las pruebas fallaron; revisa la salida." }
+}
+# 6. Registro en Claude Code (ambito usuario) con las rutas de ESTA instalacion
+if (-not $NoRegister) {
+    $claude = Get-Command claude -ErrorAction SilentlyContinue
+    $claudePath = if ($claude) { $claude.Source } elseif (Test-Path "$env:USERPROFILE\.local\bin\claude.exe") { "$env:USERPROFILE\.local\bin\claude.exe" } else { $null }
+    if ($claudePath) {
+        & $claudePath mcp remove netbeans-autopilot --scope user 2>$null | Out-Null
+        & $claudePath mcp add netbeans-autopilot --scope user -e "PYTHONPATH=$PSScriptRoot" -- $py -m netbeans_autopilot
+        if ($LASTEXITCODE) { Write-Warning "No se pudo registrar; usa mcp.config.generated.json (ver docs/INSTALACION.md)." }
+        else { Write-Host "Registrado en Claude Code. Abre una sesion NUEVA para usarlo." }
+    } else {
+        Write-Warning "No se encontro 'claude'. Instala Claude Code y repite, o registra el servidor a mano (docs/INSTALACION.md)."
+    }
 }
 Write-Host "Instalación completada."
